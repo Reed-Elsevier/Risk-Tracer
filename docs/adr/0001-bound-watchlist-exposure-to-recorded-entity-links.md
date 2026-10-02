@@ -1,0 +1,3 @@
+# Bound watchlist exposure to recorded entity links
+
+TraceRisk identifies entity watchlist matches by exact entity ID and displays at most two upstream ownership links from a supplier's entity. Each Direct, Indirect, or Nominee row counts as one reported link with its own source ID, percentage, and effective date; an Indirect row is not expanded into inferred intermediaries. This boundary favors traceable evidence over broader name or graph matching because the available data has no person/director bridge, ownership end dates, or definition from which to reconstruct Indirect links. Exposure is described as the latest recorded state in the dataset, with dates visible, rather than verified current control or a claim about what was known when an older invoice was issued.
