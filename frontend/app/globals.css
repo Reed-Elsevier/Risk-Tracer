@@ -1,0 +1,49 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+:root {
+  color-scheme: light;
+}
+
+* {
+  box-sizing: border-box;
+}
+
+body {
+  margin: 0;
+  min-width: 320px;
+  background: #f7f5ef;
+  color: #15221f;
+  font-family: Arial, Helvetica, sans-serif;
+}
+
+button,
+input,
+select,
+textarea {
+  font: inherit;
+}
+
+::selection {
+  background: #cfe0d5;
+}
+
+.flow-node {
+  min-width: 176px;
+  border: 1px solid #b8c4ba;
+  border-radius: 14px;
+  background: #fffef9;
+  padding: 12px 14px;
+  box-shadow: 0 8px 20px rgba(21, 34, 31, 0.08);
+}
+
+.flow-node.listed {
+  border-color: #c35636;
+  background: #fff2eb;
+}
+
+.flow-node.supplier {
+  border-color: #1f6a50;
+  background: #edf8f0;
+}
