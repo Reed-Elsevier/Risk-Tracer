@@ -3,7 +3,7 @@
 import { useEffect, useMemo } from "react";
 import { Background, Controls, Handle, MarkerType, Position, ReactFlow, useNodesInitialized, useReactFlow } from "@xyflow/react";
 import type { Edge, Node, NodeProps } from "@xyflow/react";
-import { Building2, Landmark, ShieldAlert } from "lucide-react";
+import { ArrowRight, Building2, Landmark, ShieldAlert } from "lucide-react";
 import "@xyflow/react/dist/style.css";
 
 import type { Investigation } from "@/lib/types";
@@ -19,7 +19,7 @@ function FitOwnershipPath() {
 
   useEffect(() => {
     if (nodesInitialized) {
-      void fitView({ padding: 0.22, minZoom: 0.3, maxZoom: 1 });
+      void fitView({ padding: 0.22, minZoom: 0.16, maxZoom: 1 });
     }
   }, [fitView, nodesInitialized]);
 
@@ -81,7 +81,7 @@ function layoutNodes(graph: Investigation["graph"]): OwnershipFlowNode[] {
     nodes.map((node, index) => ({
       id: node.id,
       type: "ownership",
-      position: { x: level * 330, y: index * 170 },
+      position: { x: level * 380, y: index * 180 },
       data: node,
       draggable: false,
       selectable: false,
@@ -90,6 +90,10 @@ function layoutNodes(graph: Investigation["graph"]): OwnershipFlowNode[] {
 }
 
 export default function OwnershipGraph({ graph }: { graph: Investigation["graph"] }) {
+  const entityNames = useMemo(
+    () => new Map(graph.nodes.map((node) => [node.id, node.label])),
+    [graph.nodes]
+  );
   const nodes = useMemo<Node[]>(
     () => layoutNodes(graph),
     [graph]
@@ -99,7 +103,7 @@ export default function OwnershipGraph({ graph }: { graph: Investigation["graph"
       id: edge.id,
       source: edge.source,
       target: edge.target,
-      label: edge.label.split(" · ").slice(0, 2).join(" · "),
+      label: edge.label.split(" · ")[0],
       type: "smoothstep",
       markerEnd: { type: MarkerType.ArrowClosed, color: "#1e4e8c", width: 18, height: 18 },
       style: { stroke: "#1e4e8c", strokeWidth: 1.75 },
@@ -113,7 +117,7 @@ export default function OwnershipGraph({ graph }: { graph: Investigation["graph"
   );
 
   return (
-    <section className="rounded-2xl border border-black/15 bg-white p-5 shadow-card">
+    <section id="ownership-path" className="rounded-2xl border border-black/15 bg-white p-5 shadow-card">
       <div className="mb-5 flex flex-wrap items-end justify-between gap-4">
         <div>
           <h2 className="text-xl font-semibold tracking-tight text-ink">Recorded ownership path</h2>
@@ -131,8 +135,8 @@ export default function OwnershipGraph({ graph }: { graph: Investigation["graph"
           edges={edges}
           nodeTypes={nodeTypes}
           fitView
-          fitViewOptions={{ padding: 0.22, minZoom: 0.35, maxZoom: 1 }}
-          minZoom={0.3}
+          fitViewOptions={{ padding: 0.22, minZoom: 0.16, maxZoom: 1 }}
+          minZoom={0.15}
           maxZoom={1.5}
           nodesDraggable={false}
           nodesConnectable={false}
@@ -144,6 +148,38 @@ export default function OwnershipGraph({ graph }: { graph: Investigation["graph"
           <Background color="#cbd8e8" gap={24} size={1} />
           <Controls showInteractive={false} position="bottom-right" />
         </ReactFlow>
+      </div>
+      <div className="mt-6 border-t border-black/10 pt-5">
+        <h3 className="text-base font-bold tracking-tight text-ink">Relationship details</h3>
+        <p className="mt-1 text-sm text-black/60">Complete relationship type, ownership share, date, and source record.</p>
+        <ol className="mt-4 divide-y divide-black/10 border-y border-black/10">
+          {graph.edges.map((edge) => {
+            const [relationship = "Recorded", share = "Not recorded", effectiveDate = "Date not recorded"] = edge.label.split(" · ");
+            return (
+              <li key={edge.id} className="grid gap-3 py-4 sm:grid-cols-[minmax(0,1fr)_auto_auto] sm:items-center sm:gap-6">
+                <div className="min-w-0">
+                  <div className="grid min-w-0 grid-cols-[minmax(0,1fr)_auto_minmax(0,1fr)] items-start gap-2 text-sm font-semibold text-black">
+                    <span className="break-words">{entityNames.get(edge.source) ?? edge.source}</span>
+                    <ArrowRight size={15} className="mt-0.5 shrink-0 text-[#1e4e8c]" aria-hidden="true" />
+                    <span className="break-words">{entityNames.get(edge.target) ?? edge.target}</span>
+                  </div>
+                  <div className="mt-2 flex flex-wrap items-center gap-2 text-xs">
+                    <span className="rounded-md bg-[#1e4e8c] px-2 py-1 font-semibold text-white">{relationship}</span>
+                    <span className="font-mono font-semibold text-[#1e4e8c]">{edge.ownership_link_id}</span>
+                  </div>
+                </div>
+                <div>
+                  <p className="text-[10px] font-bold uppercase tracking-[0.12em] text-black/55">Ownership</p>
+                  <p className="mt-1 text-sm font-semibold text-black">{share}</p>
+                </div>
+                <div>
+                  <p className="text-[10px] font-bold uppercase tracking-[0.12em] text-black/55">Effective</p>
+                  <p className="mt-1 font-mono text-xs font-semibold text-black">{effectiveDate}</p>
+                </div>
+              </li>
+            );
+          })}
+        </ol>
       </div>
     </section>
   );

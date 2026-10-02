@@ -67,7 +67,7 @@ textarea {
 
 .flow-node {
   position: relative;
-  width: 220px;
+  width: 240px;
   border: 1px solid #9aabbd;
   border-radius: 14px;
   background: #ffffff;
@@ -107,6 +107,7 @@ textarea {
   font-size: 14px;
   font-weight: 700;
   line-height: 1.3;
+  overflow-wrap: anywhere;
 }
 
 .flow-node__id {
@@ -115,6 +116,7 @@ textarea {
   font-family: var(--font-plex-mono), ui-monospace, monospace;
   font-size: 10px;
   line-height: 1.4;
+  overflow-wrap: anywhere;
 }
 
 .flow-node__watchlist {
