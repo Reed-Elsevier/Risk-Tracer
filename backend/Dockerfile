@@ -4,10 +4,11 @@ WORKDIR /app
 
 COPY backend/pyproject.toml ./pyproject.toml
 COPY backend/app ./app
+COPY backend/scripts/fetch_s3_data.py ./fetch_s3_data.py
+COPY backend/docker-entrypoint.sh ./docker-entrypoint.sh
 
-RUN pip install --no-cache-dir .
-
-COPY center_data /data
+RUN pip install --no-cache-dir . \
+    && chmod +x /app/docker-entrypoint.sh
 
 ENV DATA_DIR=/data \
     DB_PATH=/tmp/risktracer.duckdb \
@@ -15,4 +16,4 @@ ENV DATA_DIR=/data \
 
 EXPOSE 8000
 
-CMD ["uvicorn", "app.main:app", "--host", "0.0.0.0", "--port", "8000"]
+ENTRYPOINT ["/app/docker-entrypoint.sh"]

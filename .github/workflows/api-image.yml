@@ -7,7 +7,8 @@ on:
       - "backend/Dockerfile"
       - "backend/app/**"
       - "backend/pyproject.toml"
-      - "center_data/**"
+      - "backend/scripts/**"
+      - "backend/docker-entrypoint.sh"
       - ".dockerignore"
       - ".github/workflows/api-image.yml"
   workflow_dispatch:

@@ -8,6 +8,7 @@
 var
 docs
 frontend
+center_data
 backend/.venv
 backend/.pip-tmp
 backend/test-var

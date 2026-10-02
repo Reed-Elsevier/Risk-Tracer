@@ -1,0 +1,76 @@
+{
+  "title": "How Home is arranged",
+  "question": "Home has three jobs: find an invoice, show how a review works, and open INV0021439 in one click. The paper, ink, and moss already in the app stay. Pick the arrangement.",
+  "options": [
+    {
+      "id": "work-slip",
+      "label": "Work slip",
+      "kicker": "THE ROLL",
+      "lineage": "one open work item on a reviewer's desk",
+      "thesis": "The verified case is the first work item. Search is how a different invoice comes in.",
+      "palette": ["#f7f5ef", "#15221f", "#1f6a50", "#c35636"],
+      "materials": ["one work row", "priority held in ember until opened"],
+      "viewport": "Top bar with Home. A search across the width. One row for INV0021439 with its priority and Open. Under it, a short strip: signals, ownership path, human decision.",
+      "risk": "Someone who already has an invoice id has to look past the demo row to reach search.",
+      "wireframe": {
+        "cols": 12,
+        "rows": 10,
+        "regions": [
+          {"label": "Home nav", "x": 0, "y": 0, "w": 12, "h": 1},
+          {"label": "Find an invoice", "x": 0, "y": 1, "w": 12, "h": 2, "accent": true},
+          {"label": "INV0021439 work row", "x": 0, "y": 4, "w": 12, "h": 3, "accent": true},
+          {"label": "How a review works", "x": 0, "y": 8, "w": 12, "h": 2}
+        ]
+      },
+      "comp": ".impeccable/mocks/decision/work-slip.png"
+    },
+    {
+      "id": "desk-blotter",
+      "label": "Desk blotter",
+      "lineage": "search as the desk, the demo file clipped beside it",
+      "thesis": "Search owns the desk. The demo case sits beside it, and the review steps sit underneath.",
+      "palette": ["#f7f5ef", "#15221f", "#1f6a50", "#c35636"],
+      "materials": ["wide search", "clipped case file"],
+      "viewport": "Top bar with Home. A large search on the left, the demo case as a file on the right, three steps of a review across the bottom.",
+      "risk": "Search and the demo file can compete, so the first action is less obvious.",
+      "wireframe": {
+        "cols": 12,
+        "rows": 10,
+        "regions": [
+          {"label": "Home nav", "x": 0, "y": 0, "w": 12, "h": 1},
+          {"label": "Find an invoice", "x": 0, "y": 1, "w": 7, "h": 5, "accent": true},
+          {"label": "Demo case file", "x": 7, "y": 1, "w": 5, "h": 5},
+          {"label": "Signals, path, decision", "x": 0, "y": 7, "w": 12, "h": 3}
+        ]
+      },
+      "comp": ".impeccable/mocks/decision/desk-blotter.png"
+    },
+    {
+      "id": "cited-record",
+      "label": "Cited record",
+      "lineage": "an evidence brief with notes in the margin",
+      "thesis": "The demo case is written as an evidence brief. Margin notes say what each part of a review is for.",
+      "palette": ["#f7f5ef", "#15221f", "#1f6a50", "#c35636"],
+      "materials": ["cited column", "keyed margin notes"],
+      "viewport": "Home and search in the header. The center is the cited demo record. The right margin holds short notes keyed to those lines.",
+      "risk": "It can read as a document before it reads as a place to start work.",
+      "wireframe": {
+        "cols": 12,
+        "rows": 10,
+        "regions": [
+          {"label": "Home nav", "x": 0, "y": 0, "w": 8, "h": 1},
+          {"label": "Find an invoice", "x": 8, "y": 0, "w": 4, "h": 1},
+          {"label": "Cited demo record", "x": 1, "y": 2, "w": 7, "h": 8},
+          {"label": "Margin notes", "x": 8, "y": 2, "w": 4, "h": 8, "accent": true}
+        ]
+      },
+      "comp": ".impeccable/mocks/decision/cited-record.png"
+    }
+  ],
+  "reroll": true,
+  "steer": true,
+  "buildPath": {
+    "value": "code",
+    "toggle": true
+  }
+}

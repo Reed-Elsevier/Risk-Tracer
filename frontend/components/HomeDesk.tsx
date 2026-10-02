@@ -50,7 +50,7 @@ export default function HomeDesk() {
                 strokeLinecap="round"
               />
             </svg>
-            <h2 className="font-mono text-2xl font-black tracking-tight text-ink">{DEMO_INVOICE_ID}</h2>
+            <h2 className="text-2xl font-black tracking-tight text-ink">{DEMO_INVOICE_ID}</h2>
             <p className="mt-2 text-sm leading-6 text-[#3e524c]">Verified case</p>
             {!investigation && !error && <p className="mt-6 text-sm text-[#3e524c]">Loading the case…</p>}
             {error && (
