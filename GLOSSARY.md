@@ -1,6 +1,6 @@
-# TraceRisk
+# RiskTracer
 
-TraceRisk helps a human reviewer investigate supplier payment risk using invoice, supplier, relationship, and watchlist evidence.
+RiskTracer helps a human reviewer investigate supplier payment risk using invoice, supplier, relationship, and watchlist evidence.
 
 ## Language
 
@@ -43,5 +43,5 @@ An invoice's purchase order reference is missing, or its referenced purchase ord
 An investigation of an invoice whose payment has already been made. Its suggested next step concerns follow-up and verification, not holding the completed payment.
 
 **Review priority**:
-A workflow label that orders investigations for human attention using the signals found by TraceRisk. It is not a probability of fraud or a conclusion about the supplier.
+A workflow label that orders investigations for human attention using the signals found by RiskTracer. It is not a probability of fraud or a conclusion about the supplier.
 _Avoid_: Fraud score
