@@ -2,7 +2,7 @@ name: api-image
 
 on:
   push:
-    branches: [main]
+    branches: ["**"]
     paths:
       - "backend/Dockerfile"
       - "backend/app/**"
