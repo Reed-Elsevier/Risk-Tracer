@@ -5,6 +5,7 @@
   "cpu": "1024",
   "memory": "4096",
   "executionRoleArn": "arn:aws:iam::ACCOUNT_ID:role/ecsTaskExecutionRole",
+  "taskRoleArn": "arn:aws:iam::ACCOUNT_ID:role/risktracer-api-task",
   "containerDefinitions": [
     {
       "name": "api",
@@ -19,8 +20,9 @@
       ],
       "environment": [
         { "name": "DATA_DIR", "value": "/data" },
+        { "name": "DATA_BUCKET", "value": "YOUR_BUCKET" },
         { "name": "DB_PATH", "value": "/tmp/risktracer.duckdb" },
-        { "name": "OPENAI_MODEL", "value": "gpt-4o-mini" },
+        { "name": "ANTHROPIC_MODEL", "value": "claude-sonnet-4-5" },
         {
           "name": "CORS_ORIGINS",
           "value": "http://localhost:3000,https://AMPLIFY_APP_ID.amplifyapp.com"
@@ -28,8 +30,8 @@
       ],
       "secrets": [
         {
-          "name": "OPENAI_API_KEY",
-          "valueFrom": "arn:aws:secretsmanager:AWS_REGION:ACCOUNT_ID:secret:risktracer/openai-api-key"
+          "name": "ANTHROPIC_API_KEY",
+          "valueFrom": "arn:aws:secretsmanager:AWS_REGION:ACCOUNT_ID:secret:risktracer/anthropic-api-key"
         }
       ],
       "logConfiguration": {

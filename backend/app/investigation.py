@@ -2,13 +2,17 @@
 
 from __future__ import annotations
 
+import json
+from collections.abc import Callable
 from typing import Any
 
 from app.brief import build_evidence_brief
 from app.data import DataStore
 from app.decisions import DecisionRepository
 from app.graph import build_ownership_graph
+from app.narrative import review_model_account
 from app.models import (
+    InvestigationNarrative,
     BusinessEntityRecord,
     DuplicateSignal,
     ExceptionRecord,
@@ -23,6 +27,7 @@ from app.models import (
     WatchlistSignal,
 )
 from app.priority import assign_review_priority
+from app.supplier_history import summarize_supplier_history
 from app.signals.duplicates import find_possible_duplicates
 from app.signals.po_integrity import find_po_integrity_reasons
 from app.signals.watchlist import find_watchlist_exposures
@@ -38,12 +43,128 @@ def _model(model_type: type[Any], record: dict[str, Any] | None, label: str) -> 
     return model_type.model_validate(record)
 
 
+NarrativeWriter = Callable[[dict[str, Any]], str]
+
+
+def _unavailable_narrative() -> InvestigationNarrative:
+    return InvestigationNarrative(status="unavailable")
+
+
+def _example_records(exception_ids: list[str], exceptions: Any) -> list[dict[str, str]]:
+    if not exception_ids or exceptions.empty:
+        return []
+    matched = exceptions[exceptions["exception_id"].astype(str).isin(exception_ids)]
+    by_id = {str(row["exception_id"]): row for _, row in matched.iterrows()}
+    records: list[dict[str, str]] = []
+    for exception_id in exception_ids:
+        row = by_id.get(exception_id)
+        if row is None:
+            continue
+        records.append(
+            {
+                "exception_id": exception_id,
+                "invoice_id": str(row["invoice_id"]),
+                "exception_type": str(row["exception_type"]),
+            }
+        )
+    return records
+
+
+def _narrative_for(
+    *,
+    invoice_raw: dict[str, Any],
+    supplier_raw: dict[str, Any],
+    entity_raw: dict[str, Any],
+    signals: Signals,
+    brief_raw: dict[str, Any],
+    store: DataStore,
+    narrative_writer: NarrativeWriter | None,
+) -> InvestigationNarrative:
+    if narrative_writer is None:
+        return _unavailable_narrative()
+
+    summary = summarize_supplier_history(
+        supplier_id=str(invoice_raw.get("supplier_id", "")),
+        current_invoice_id=str(invoice_raw.get("invoice_id", "")),
+        invoices=store.frames["invoices"],
+        exceptions=store.frames["invoice_exceptions"],
+    )
+    examples = _example_records(summary["example_exception_ids"], store.frames["invoice_exceptions"])
+    allowed_ids = {
+        source_id
+        for sentence in brief_raw["sentences"]
+        for source_id in sentence["source_ids"]
+    }
+    for example in examples:
+        allowed_ids.add(example["exception_id"])
+        allowed_ids.add(example["invoice_id"])
+    payload = {
+        "invoice": invoice_raw,
+        "supplier": supplier_raw,
+        "entity": entity_raw,
+        "signals": signals.model_dump(mode="json"),
+        "evidence_brief": brief_raw,
+        "supplier_history": {
+            "other_invoice_count": summary["other_invoice_count"],
+            "exception_counts": summary["exception_counts"],
+            "examples": examples,
+        },
+    }
+    try:
+        parsed = json.loads(narrative_writer(payload))
+        account = review_model_account(
+            narrative=str(parsed.get("narrative", "")),
+            checklist=str(parsed.get("checklist", "")),
+            allowed_ids=allowed_ids,
+            retrospective=bool(brief_raw["retrospective"]),
+        )
+    except Exception:
+        return _unavailable_narrative()
+    return InvestigationNarrative.model_validate(account)
+
+
+def apply_submitted_narrative(
+    investigation: Investigation,
+    store: DataStore,
+    submission: InvestigationNarrative,
+) -> Investigation:
+    """Keep the narrative the reviewer saw, without calling the model again."""
+
+    if submission.status != "shown":
+        return investigation.model_copy(update={"narrative": _unavailable_narrative()})
+    invoice_raw = investigation.invoice.model_dump(mode="json")
+    brief_raw = investigation.evidence_brief.model_dump(mode="json")
+    summary = summarize_supplier_history(
+        supplier_id=str(invoice_raw.get("supplier_id", "")),
+        current_invoice_id=str(invoice_raw.get("invoice_id", "")),
+        invoices=store.frames["invoices"],
+        exceptions=store.frames["invoice_exceptions"],
+    )
+    examples = _example_records(summary["example_exception_ids"], store.frames["invoice_exceptions"])
+    allowed_ids = {
+        source_id
+        for sentence in brief_raw["sentences"]
+        for source_id in sentence["source_ids"]
+    }
+    for example in examples:
+        allowed_ids.add(example["exception_id"])
+        allowed_ids.add(example["invoice_id"])
+    account = review_model_account(
+        narrative=submission.text,
+        checklist=submission.checklist,
+        allowed_ids=allowed_ids,
+        retrospective=investigation.evidence_brief.retrospective,
+    )
+    return investigation.model_copy(update={"narrative": InvestigationNarrative.model_validate(account)})
+
+
 def build_investigation(
     invoice_id: str,
     store: DataStore,
     decisions: DecisionRepository | None = None,
     *,
     llm_available: bool = False,
+    narrative_writer: NarrativeWriter | None = None,
 ) -> Investigation:
     invoice_raw = store.invoice(invoice_id)
     invoice = _model(InvoiceRecord, invoice_raw, f"Invoice {invoice_id} not found")
@@ -85,6 +206,12 @@ def build_investigation(
         direct_watchlist=bool(watchlist_signal.direct_match),
     )
     priority = ReviewPriority.model_validate(priority_raw)
+    signals = Signals(
+        duplicate=duplicate_signal,
+        po_integrity=po_signal,
+        watchlist=watchlist_signal,
+        exceptions=exception_records,
+    )
     brief_raw = build_evidence_brief(
         invoice=invoice_raw or {},
         supplier=supplier_raw or {},
@@ -108,14 +235,18 @@ def build_investigation(
         entity=entity,
         payment=payment,
         priority=priority,
-        signals=Signals(
-            duplicate=duplicate_signal,
-            po_integrity=po_signal,
-            watchlist=watchlist_signal,
-            exceptions=exception_records,
-        ),
+        signals=signals,
         evidence_brief=brief_raw,
         graph=graph_raw,
+        narrative=_narrative_for(
+            invoice_raw=invoice_raw or {},
+            supplier_raw=supplier_raw or {},
+            entity_raw=entity_raw or {},
+            signals=signals,
+            brief_raw=brief_raw,
+            store=store,
+            narrative_writer=narrative_writer,
+        ),
         latest_decision=decisions.latest(invoice_id) if decisions else None,
         llm_available=llm_available,
     )

@@ -2,7 +2,7 @@
 
 RiskTracer is an evidence-led invoice investigation MVP. A reviewer opens an investigation for an invoice, sees deterministic signals and their source records, follows a bounded ownership graph, and records a human review decision.
 
-The initial review priority is calculated only by explicit rules from [ADR-0002](docs/adr/0002-assign-review-priority-from-evidence-rules.md). The LLM is optional and writes explanations only; it never sets priority or concludes fraud.
+The initial review priority is calculated only by explicit rules from [ADR-0002](docs/adr/0002-assign-review-priority-from-evidence-rules.md). When `ANTHROPIC_API_KEY` is set, each investigation includes an investigation narrative and a checklist for the review note. The narrative can describe supplier history, and it never sets priority or concludes fraud. See [ADR-0003](docs/adr/0003-let-the-narrative-use-supplier-history-without-changing-priority.md).
 
 ## Local run
 
@@ -49,7 +49,7 @@ The demo investigation is expected to show:
 - No PO integrity signal for `PO0009457`.
 - Exception context `IEX0004557`.
 
-Malformed request bodies return `422`; unknown invoice IDs return `404`. Without `OPENAI_API_KEY`, the deterministic investigation still works and the explanation endpoint returns `503`.
+Malformed request bodies return `422`; unknown invoice IDs return `404`. Without `ANTHROPIC_API_KEY`, the investigation still works, its narrative status is `unavailable`, and the explanation endpoint returns `503`.
 
 ## Verification
 
@@ -77,6 +77,6 @@ The API is available at <http://localhost:8000> and the web app at <http://local
 
 1. Launch an Ubuntu instance with a security group allowing TCP `22` for administration and TCP `3000` for the web app. Keep `8000` private when possible.
 2. Install Docker Engine and the Compose plugin.
-3. Clone this repository and create `.env` from `.env.example`; set `CORS_ORIGINS` to the web origin and optionally set `OPENAI_API_KEY`.
+3. Clone this repository and create `.env` from `.env.example`; set `CORS_ORIGINS` to the web origin and optionally set `ANTHROPIC_API_KEY`.
 4. Run `docker compose up --build -d`.
 5. Put a TLS reverse proxy in front of port `3000` for a shared deployment. Persist the `var/` directory and back up the DuckDB file if review history matters.

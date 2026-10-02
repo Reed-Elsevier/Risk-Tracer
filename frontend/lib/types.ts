@@ -5,8 +5,10 @@ export interface EvidenceSentence {
   source_ids: string[];
 }
 
-export interface ExplainResponse {
-  narrative: string;
+export interface InvestigationNarrative {
+  status: "shown" | "unavailable";
+  text: string;
+  checklist: string;
   source_ids: string[];
 }
 
@@ -170,6 +172,7 @@ export interface Investigation {
       ownership_link_id: string;
     }[];
   };
+  narrative: InvestigationNarrative;
   latest_decision: ReviewDecision | null;
   llm_available: boolean;
 }

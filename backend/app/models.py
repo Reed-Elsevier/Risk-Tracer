@@ -210,6 +210,13 @@ class ReviewDecision(DomainModel):
     evidence_snapshot: dict[str, Any]
 
 
+class InvestigationNarrative(DomainModel):
+    status: Literal["shown", "unavailable"]
+    text: str = ""
+    checklist: str = ""
+    source_ids: list[str] = Field(default_factory=list)
+
+
 class Investigation(DomainModel):
     invoice: InvoiceRecord
     supplier: SupplierRecord
@@ -219,6 +226,9 @@ class Investigation(DomainModel):
     signals: Signals
     evidence_brief: EvidenceBrief
     graph: OwnershipGraph
+    narrative: InvestigationNarrative = Field(
+        default_factory=lambda: InvestigationNarrative(status="unavailable")
+    )
     latest_decision: ReviewDecision | None = None
     llm_available: bool = False
 
@@ -233,6 +243,7 @@ class DecisionRequest(DomainModel):
     priority_override: Literal["High", "Medium", "No flagged signals"] | None = None
     override_reason: str | None = None
     reviewer: str = Field(min_length=1)
+    narrative: InvestigationNarrative | None = None
 
 
 class InvoiceSearchResult(DomainModel):

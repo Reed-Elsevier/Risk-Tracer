@@ -1,0 +1,3 @@
+# Let the narrative use supplier history without changing priority
+
+The investigation narrative may describe supplier history, meaning the same supplier's other invoices and invoice exceptions, but that history does not change review priority. Priority stays on the rules in ADR-0002. The narrative receives full-history counts computed in code, plus a few example record ids, because a supplier can have thousands of invoices and the model must not invent a count from a sample or treat that sample as the whole history. A missing, failed, or rule-breaking narrative is withheld; the evidence brief and the human review decision still stand.

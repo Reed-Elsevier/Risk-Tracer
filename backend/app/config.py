@@ -13,8 +13,8 @@ REPO_ROOT = Path(__file__).resolve().parents[2]
 class Settings(BaseSettings):
     model_config = SettingsConfigDict(env_file=".env", extra="ignore", case_sensitive=False)
 
-    openai_api_key: str | None = None
-    openai_model: str = "gpt-4o-mini"
+    anthropic_api_key: str | None = None
+    anthropic_model: str = "claude-sonnet-4-5"
     data_dir: Path = REPO_ROOT / "center_data"
     db_path: Path = REPO_ROOT / "var" / "risktracer.duckdb"
     cors_origins: str = "http://localhost:3000"

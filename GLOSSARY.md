@@ -13,7 +13,7 @@ A human reviewer's disposition of an investigation, such as escalating or cleari
 _Avoid_: Payment approval, payment hold
 
 **Evidence snapshot**:
-The set of source facts and derived signals considered when a review decision was recorded.
+The source facts and derived signals considered when a review decision was recorded, plus the investigation narrative shown at that time, if one was shown.
 
 **Ownership path**:
 A sequence of ownership relationships connecting a supplier's business entity to another business entity. Each step represents a recorded entity-to-entity relationship.
@@ -45,3 +45,15 @@ An investigation of an invoice whose payment has already been made. Its suggeste
 **Review priority**:
 A workflow label that orders investigations for human attention using the signals found by RiskTracer. It is not a probability of fraud or a conclusion about the supplier.
 _Avoid_: Fraud score
+
+**Evidence brief**:
+The rule-written sentences for one investigation. Each sentence states a recorded fact and names the source records it came from.
+_Avoid_: Investigation narrative
+
+**Supplier history**:
+The other invoices and invoice exceptions recorded for the same supplier as the investigation. It is context for the investigation narrative, not an input to review priority.
+_Avoid_: Supplier risk score
+
+**Investigation narrative**:
+A short cited account of one investigation, written for the reviewer from the evidence brief and the supplier history. It is not a review priority and not a review decision.
+_Avoid_: Fraud summary, explanation

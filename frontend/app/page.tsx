@@ -1,5 +1,5 @@
-import { redirect } from "next/navigation";
+import HomeDesk from "@/components/HomeDesk";
 
 export default function HomePage() {
-  redirect("/investigations/INV0021439");
+  return <HomeDesk />;
 }

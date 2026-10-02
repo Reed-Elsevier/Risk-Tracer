@@ -29,6 +29,44 @@ textarea {
   background: #cfe0d5;
 }
 
+::placeholder {
+  color: #3e524c;
+  opacity: 1;
+}
+
+:focus-visible {
+  outline: 2px solid #1f6a50;
+  outline-offset: 3px;
+}
+
+* {
+  scrollbar-color: #8aa396 #e8ebe4;
+}
+
+.case-file {
+  transform: rotate(1.6deg);
+  transform-origin: 78% 0;
+}
+
+@media (prefers-reduced-motion: no-preference) {
+  .case-file {
+    transition:
+      transform 420ms cubic-bezier(0.16, 1, 0.3, 1),
+      box-shadow 420ms cubic-bezier(0.16, 1, 0.3, 1);
+  }
+
+  .case-file:hover,
+  .case-file:focus-within {
+    transform: rotate(0deg);
+  }
+}
+
+@media (max-width: 1023px) {
+  .case-file {
+    transform: none;
+  }
+}
+
 .flow-node {
   min-width: 176px;
   border: 1px solid #b8c4ba;

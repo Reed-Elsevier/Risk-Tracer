@@ -6,11 +6,11 @@ import { useEffect, useState } from "react";
 
 import { fetchDecisionHistory, fetchInvestigation } from "@/lib/api";
 import type { Investigation, ReviewDecision } from "@/lib/types";
+import AppShell from "@/components/AppShell";
 import DecisionForm from "@/components/DecisionForm";
 import DecisionHistory from "@/components/DecisionHistory";
 import EvidenceBrief from "@/components/EvidenceBrief";
-import InvoiceSearch from "@/components/InvoiceSearch";
-import LlmExplanation from "@/components/LlmExplanation";
+import InvestigationNarrative from "@/components/InvestigationNarrative";
 import OwnershipGraph from "@/components/OwnershipGraph";
 import PriorityBadge from "@/components/PriorityBadge";
 import SignalCard from "@/components/SignalCard";
@@ -36,24 +36,37 @@ export default function InvestigationView({ invoiceId }: { invoiceId: string }) 
   }, [invoiceId]);
 
   if (error) {
-    return <main className="min-h-screen bg-paper px-6 py-10"><div className="mx-auto max-w-3xl rounded-2xl border border-[#efc7b9] bg-[#fff4ef] p-6 text-ember"><h1 className="text-xl font-semibold">Investigation unavailable</h1><p className="mt-2 text-sm">{error}</p><Link href="/investigations/INV0021439" className="mt-4 inline-flex text-sm font-semibold underline">Open the demo investigation</Link></div></main>;
+    return (
+      <AppShell>
+        <div className="mx-auto max-w-3xl px-6 py-10">
+          <div className="rounded-2xl border border-[#efc7b9] bg-[#fff4ef] p-6 text-ember">
+            <h1 className="text-xl font-semibold">Investigation unavailable</h1>
+            <p className="mt-2 text-sm text-ink">{error}</p>
+            <div className="mt-4 flex flex-wrap gap-4 text-sm font-semibold">
+              <Link href="/" className="text-moss underline">Back to Home</Link>
+              <Link href="/investigations/INV0021439" className="text-moss underline">Open the verified case</Link>
+            </div>
+          </div>
+        </div>
+      </AppShell>
+    );
   }
   if (!investigation) {
-    return <main className="min-h-screen bg-paper px-6 py-10"><div className="mx-auto max-w-7xl animate-pulse"><div className="h-8 w-64 rounded bg-mist" /><div className="mt-8 h-56 rounded-2xl bg-white" /></div></main>;
+    return (
+      <AppShell>
+        <div className="mx-auto max-w-7xl animate-pulse px-6 py-10">
+          <div className="h-8 w-64 rounded bg-mist" />
+          <div className="mt-8 h-56 rounded-2xl bg-white" />
+        </div>
+      </AppShell>
+    );
   }
 
   const { invoice, supplier, priority, signals } = investigation;
   const nextDecisions = (decision: ReviewDecision) => setDecisions((current) => [decision, ...current]);
 
   return (
-    <main className="min-h-screen bg-paper">
-      <header className="border-b border-slate-200 bg-paper/90 px-6 py-5 backdrop-blur">
-        <div className="mx-auto flex max-w-7xl flex-wrap items-center justify-between gap-4">
-          <Link href="/" className="flex items-center gap-3"><span className="grid h-9 w-9 place-items-center rounded-xl bg-ink text-sm font-black text-[#b8dfc5]">R</span><span><span className="block text-sm font-black tracking-tight text-ink">RiskTracer</span><span className="block text-[10px] uppercase tracking-[0.18em] text-slate-500">Evidence-led review</span></span></Link>
-          <InvoiceSearch />
-        </div>
-      </header>
-
+    <AppShell>
       <div className="mx-auto max-w-7xl px-6 py-8">
         <div className="flex flex-wrap items-start justify-between gap-6">
           <div>
@@ -69,7 +82,18 @@ export default function InvestigationView({ invoiceId }: { invoiceId: string }) 
           </div>
         </div>
 
-        <div className="mt-8 grid gap-5 lg:grid-cols-3">
+        <div className="mt-8">
+          <InvestigationNarrative status={investigation.narrative.status} text={investigation.narrative.text} sourceIds={investigation.narrative.source_ids} />
+        </div>
+
+        <div className="mt-5 grid gap-5 lg:grid-cols-[1.15fr_0.85fr]">
+          <EvidenceBrief sentences={investigation.evidence_brief.sentences} suggestedNextStep={investigation.evidence_brief.suggested_next_step} retrospective={investigation.evidence_brief.retrospective} />
+          <SignalCard eyebrow="Invoice exceptions" title={`${signals.exceptions.length} recorded context item${signals.exceptions.length === 1 ? "" : "s"}`} tone={signals.exceptions.length ? "watch" : "clear"}>
+            {signals.exceptions.length === 0 ? <p className="text-sm text-slate-600">No invoice exceptions are recorded.</p> : <div className="space-y-3">{signals.exceptions.map((exception) => <div key={exception.exception_id} className="flex gap-3 rounded-xl bg-[#fffcf4] p-3"><FileWarning size={18} className="mt-0.5 shrink-0 text-gold" /><div><p className="text-sm font-semibold text-ink">{exception.exception_type}</p><p className="mt-1 text-xs text-slate-500"><span className="font-mono">{exception.exception_id}</span> · {exception.resolved_at ? "Resolved" : "Unresolved"}</p>{exception.resolution && <p className="mt-2 text-xs text-slate-600">{exception.resolution}</p>}</div></div>)}</div>}
+          </SignalCard>
+        </div>
+
+        <div className="mt-5 grid gap-5 lg:grid-cols-3">
           <SignalCard eyebrow="Possible duplicate submission" title={`${signals.duplicate.matches.length} comparison record${signals.duplicate.matches.length === 1 ? "" : "s"}`} tone={signals.duplicate.matches.length ? "alert" : "clear"}>
             {signals.duplicate.matches.length === 0 ? <p className="text-sm text-slate-600">No same-supplier, same-currency comparison record met the rule.</p> : <div className="space-y-3">
               <div className="grid gap-3 sm:grid-cols-2">
@@ -94,24 +118,15 @@ export default function InvestigationView({ invoiceId }: { invoiceId: string }) 
           </SignalCard>
         </div>
 
-        <div className="mt-5 grid gap-5 lg:grid-cols-[1.15fr_0.85fr]">
-          <EvidenceBrief sentences={investigation.evidence_brief.sentences} suggestedNextStep={investigation.evidence_brief.suggested_next_step} retrospective={investigation.evidence_brief.retrospective} />
-          <SignalCard eyebrow="Invoice exceptions" title={`${signals.exceptions.length} recorded context item${signals.exceptions.length === 1 ? "" : "s"}`} tone={signals.exceptions.length ? "watch" : "clear"}>
-            {signals.exceptions.length === 0 ? <p className="text-sm text-slate-600">No invoice exceptions are recorded.</p> : <div className="space-y-3">{signals.exceptions.map((exception) => <div key={exception.exception_id} className="flex gap-3 rounded-xl bg-[#fffcf4] p-3"><FileWarning size={18} className="mt-0.5 shrink-0 text-gold" /><div><p className="text-sm font-semibold text-ink">{exception.exception_type}</p><p className="mt-1 text-xs text-slate-500"><span className="font-mono">{exception.exception_id}</span> · {exception.resolved_at ? "Resolved" : "Unresolved"}</p>{exception.resolution && <p className="mt-2 text-xs text-slate-600">{exception.resolution}</p>}</div></div>)}</div>}
-          </SignalCard>
-        </div>
-
         <div className="mt-5"><OwnershipGraph graph={investigation.graph} /></div>
 
         <div className="mt-5 grid gap-5 lg:grid-cols-2">
-          <DecisionForm invoiceId={invoice.invoice_id} currentPriority={priority.value} onSaved={nextDecisions} />
+          <DecisionForm invoiceId={invoice.invoice_id} currentPriority={priority.value} initialNote={investigation.narrative.status === "shown" ? investigation.narrative.checklist : ""} narrative={investigation.narrative} onSaved={nextDecisions} />
           <DecisionHistory decisions={decisions} />
         </div>
 
-        <div className="mt-5"><LlmExplanation invoiceId={invoice.invoice_id} available={investigation.llm_available} /></div>
-
-        <footer className="flex flex-wrap items-center justify-between gap-3 py-8 text-xs text-slate-400"><span>RiskTracer keeps the initial priority deterministic and reviewable.</span><a href="https://github.com" className="inline-flex items-center gap-1 hover:text-moss">Source records only <ArrowUpRight size={13} /></a></footer>
+        <footer className="flex flex-wrap items-center justify-between gap-3 py-8 text-xs text-[#3e524c]"><span>RiskTracer keeps the initial priority deterministic and reviewable.</span><a href="https://github.com" className="inline-flex items-center gap-1 hover:text-moss">Source records only <ArrowUpRight size={13} /></a></footer>
       </div>
-    </main>
+    </AppShell>
   );
 }

@@ -1,6 +1,6 @@
 import type {
-  ExplainResponse,
   Investigation,
+  InvestigationNarrative,
   InvoiceSearchResult,
   ReviewDecision,
   SupplierProfile
@@ -48,6 +48,7 @@ export function saveDecision(
     priority_override?: ReviewDecision["priority_override"];
     override_reason?: string;
     reviewer: string;
+    narrative?: InvestigationNarrative;
   }
 ): Promise<ReviewDecision> {
   return apiFetch<ReviewDecision>(`/investigations/${encodeURIComponent(invoiceId)}/decisions`, {
@@ -56,9 +57,3 @@ export function saveDecision(
   });
 }
 
-export function fetchExplanation(invoiceId: string): Promise<ExplainResponse> {
-  return apiFetch<ExplainResponse>("/investigate/explain", {
-    method: "POST",
-    body: JSON.stringify({ invoice_id: invoiceId })
-  });
-}

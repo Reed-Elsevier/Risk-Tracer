@@ -1,26 +1,34 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect, useState } from "react";
 
 import { saveDecision } from "@/lib/api";
-import type { ReviewDecision, ReviewPriority } from "@/lib/types";
+import type { InvestigationNarrative, ReviewDecision, ReviewPriority } from "@/lib/types";
 
 export default function DecisionForm({
   invoiceId,
   currentPriority,
+  initialNote,
+  narrative,
   onSaved
 }: {
   invoiceId: string;
   currentPriority: ReviewPriority;
+  initialNote: string;
+  narrative: InvestigationNarrative;
   onSaved: (decision: ReviewDecision) => void;
 }) {
   const [disposition, setDisposition] = useState<ReviewDecision["disposition"]>("needs_more_info");
-  const [note, setNote] = useState("");
+  const [note, setNote] = useState(initialNote);
   const [reviewer, setReviewer] = useState("");
   const [override, setOverride] = useState<ReviewPriority | "">("");
   const [overrideReason, setOverrideReason] = useState("");
   const [error, setError] = useState("");
   const [saving, setSaving] = useState(false);
+
+  useEffect(() => {
+    setNote(initialNote);
+  }, [invoiceId, initialNote]);
 
   async function submit() {
     setSaving(true);
@@ -30,6 +38,7 @@ export default function DecisionForm({
         disposition,
         note,
         reviewer,
+        narrative,
         ...(override ? { priority_override: override, override_reason: overrideReason } : {})
       });
       onSaved(decision);

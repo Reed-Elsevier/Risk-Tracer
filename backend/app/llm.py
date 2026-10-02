@@ -22,15 +22,45 @@ def _evidence_payload(investigation: Investigation) -> dict[str, Any]:
     }
 
 
+def _complete(prompt: str, *, api_key: str, model: str) -> str:
+    from anthropic import Anthropic
+
+    client = Anthropic(api_key=api_key)
+    response = client.messages.create(
+        model=model,
+        max_tokens=1024,
+        messages=[{"role": "user", "content": prompt}],
+    )
+    return "".join(block.text for block in response.content if getattr(block, "text", None)).strip()
+
+
+def request_narrative_account(payload: dict[str, Any], *, api_key: str, model: str) -> str:
+    """Ask for a cited narrative and checklist. The caller decides whether to show them."""
+
+    prompt = (
+        "You are writing for a human invoice reviewer. Use only the counts and record ids in the JSON. "
+        "Do not invent a count. Do not mention fraud, priority, High, Medium, No flagged signals, "
+        "duplicate payment, or beneficial owner. Do not say hold the payment. "
+        "Return only JSON, with no markdown fence, and two string keys: narrative and checklist. "
+        "The narrative is a short account of the records. "
+        "The checklist says what to verify and cites record ids. "
+        "The checklist must not say escalate, clear, or needs more information.\n\n"
+        f"Evidence JSON:\n{json.dumps(payload, ensure_ascii=False, default=str)}"
+    )
+    text = _complete(prompt, api_key=api_key, model=model)
+    if text.startswith("```"):
+        text = re.sub(r"^```(?:json)?\s*", "", text)
+        text = re.sub(r"\s*```$", "", text)
+    return text.strip()
+
+
 def explain_investigation(
     investigation: Investigation,
     *,
     api_key: str,
     model: str,
 ) -> ExplainResponse:
-    """Ask the configured OpenAI model for a cited narrative, never a priority."""
-
-    from openai import OpenAI
+    """Ask the configured Anthropic model for a cited narrative, never a priority."""
 
     payload = _evidence_payload(investigation)
     prompt = (
@@ -40,9 +70,7 @@ def explain_investigation(
         "'duplicate payment', or 'beneficial owner'. Return a short factual narrative.\n\n"
         f"Evidence JSON:\n{json.dumps(payload, ensure_ascii=False)}"
     )
-    client = OpenAI(api_key=api_key)
-    response = client.responses.create(model=model, input=prompt)
-    narrative = getattr(response, "output_text", "") or ""
+    narrative = _complete(prompt, api_key=api_key, model=model)
     allowed_ids = {
         source_id
         for sentence in investigation.evidence_brief.sentences

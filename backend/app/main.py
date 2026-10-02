@@ -11,8 +11,8 @@ from fastapi.middleware.cors import CORSMiddleware
 from app.config import Settings
 from app.data import DataStore
 from app.decisions import DecisionRepository
-from app.investigation import InvestigationNotFound, build_investigation
-from app.llm import explain_investigation
+from app.investigation import InvestigationNotFound, apply_submitted_narrative, build_investigation
+from app.llm import explain_investigation, request_narrative_account
 from app.models import (
     DecisionRequest,
     ExplainResponse,
@@ -26,7 +26,11 @@ from app.models import (
 )
 
 
-def create_app(settings: Settings | None = None, store: DataStore | None = None) -> FastAPI:
+def create_app(
+    settings: Settings | None = None,
+    store: DataStore | None = None,
+    narrative_writer=None,
+) -> FastAPI:
     configured_settings = settings or Settings()
 
     @asynccontextmanager
@@ -72,12 +76,21 @@ def create_app(settings: Settings | None = None, store: DataStore | None = None)
         return application.state.decisions
 
     def investigation_or_404(invoice_id: str) -> Investigation:
+        writer = narrative_writer
+        if writer is None and configured_settings.anthropic_api_key:
+            api_key = configured_settings.anthropic_api_key
+            model = configured_settings.anthropic_model
+
+            def writer(payload: dict[str, object]) -> str:
+                return request_narrative_account(payload, api_key=api_key, model=model)
+
         try:
             return build_investigation(
                 invoice_id,
                 current_store(),
                 current_decisions(),
-                llm_available=bool(configured_settings.openai_api_key),
+                llm_available=bool(configured_settings.anthropic_api_key),
+                narrative_writer=writer,
             )
         except InvestigationNotFound as error:
             raise HTTPException(status_code=404, detail=str(error)) from error
@@ -93,17 +106,17 @@ def create_app(settings: Settings | None = None, store: DataStore | None = None)
 
     @application.post("/investigate/explain", response_model=ExplainResponse)
     def explain(request: InvestigationRequest) -> ExplainResponse:
-        if not configured_settings.openai_api_key:
+        if not configured_settings.anthropic_api_key:
             raise HTTPException(
                 status_code=503,
-                detail="LLM explanations are unavailable because OPENAI_API_KEY is not set.",
+                detail="LLM explanations are unavailable because ANTHROPIC_API_KEY is not set.",
             )
         investigation = investigation_or_404(request.invoice_id)
         try:
             return explain_investigation(
                 investigation,
-                api_key=configured_settings.openai_api_key,
-                model=configured_settings.openai_model,
+                api_key=configured_settings.anthropic_api_key,
+                model=configured_settings.anthropic_model,
             )
         except Exception as error:  # pragma: no cover - provider errors are environment-specific
             raise HTTPException(status_code=503, detail=f"LLM explanation failed: {error}") from error
@@ -135,7 +148,17 @@ def create_app(settings: Settings | None = None, store: DataStore | None = None)
         response_model=ReviewDecision,
     )
     def record_decision(invoice_id: str, request: DecisionRequest) -> ReviewDecision:
-        investigation = investigation_or_404(invoice_id)
+        try:
+            investigation = build_investigation(
+                invoice_id,
+                current_store(),
+                current_decisions(),
+                llm_available=bool(configured_settings.anthropic_api_key),
+            )
+        except InvestigationNotFound as error:
+            raise HTTPException(status_code=404, detail=str(error)) from error
+        if request.narrative is not None:
+            investigation = apply_submitted_narrative(investigation, current_store(), request.narrative)
         if request.priority_override and not request.override_reason:
             raise HTTPException(status_code=422, detail="A priority override requires a reason")
         try:

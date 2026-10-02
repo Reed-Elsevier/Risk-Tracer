@@ -37,6 +37,9 @@ class DecisionRepository:
             raise ValueError("A priority override requires a reason")
         evidence_snapshot = investigation.model_dump(mode="json")
         evidence_snapshot["latest_decision"] = None
+        narrative = evidence_snapshot.get("narrative")
+        if isinstance(narrative, dict):
+            narrative["checklist"] = ""
         decision = ReviewDecision(
             decision_id=str(uuid.uuid4()),
             invoice_id=invoice_id,
