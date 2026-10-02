@@ -13,9 +13,10 @@
 body {
   margin: 0;
   min-width: 320px;
-  background: #f7f5ef;
-  color: #15221f;
-  font-family: Arial, Helvetica, sans-serif;
+  background: #ffffff;
+  color: #000000;
+  font-family: var(--font-plex-sans), "Segoe UI", sans-serif;
+  font-variant-numeric: tabular-nums;
 }
 
 button,
@@ -25,22 +26,27 @@ textarea {
   font: inherit;
 }
 
+.font-mono {
+  font-family: var(--font-plex-mono), ui-monospace, monospace;
+}
+
 ::selection {
-  background: #cfe0d5;
+  background: #f48529;
+  color: #000000;
 }
 
 ::placeholder {
-  color: #3e524c;
-  opacity: 1;
+  color: #000000;
+  opacity: 0.65;
 }
 
 :focus-visible {
-  outline: 2px solid #1f6a50;
+  outline: 2px solid #000000;
   outline-offset: 3px;
 }
 
 * {
-  scrollbar-color: #8aa396 #e8ebe4;
+  scrollbar-color: #000000 #ffffff;
 }
 
 .case-file {
@@ -55,25 +61,35 @@ textarea {
 
   .case-file:hover,
   .case-file:focus-within {
-    box-shadow: 0 18px 44px rgba(21, 34, 31, 0.14);
+    box-shadow: 0 18px 44px rgba(0, 0, 0, 0.14);
   }
 }
 
 .flow-node {
   min-width: 176px;
-  border: 1px solid #b8c4ba;
+  border: 1px solid #000000;
   border-radius: 14px;
-  background: #fffef9;
+  background: #ffffff;
   padding: 12px 14px;
-  box-shadow: 0 8px 20px rgba(21, 34, 31, 0.08);
+  box-shadow: 0 8px 20px rgba(0, 0, 0, 0.08);
 }
 
 .flow-node.listed {
-  border-color: #c35636;
-  background: #fff2eb;
+  border-color: #1e4e8c;
+  background: #eef3fa;
 }
 
 .flow-node.supplier {
-  border-color: #1f6a50;
-  background: #edf8f0;
+  border-color: #000000;
+  background: #f48529;
+}
+
+.react-flow__controls-button {
+  background: #ffffff;
+  border-bottom-color: #000000;
+  fill: #000000;
+}
+
+.react-flow__minimap {
+  background: #ffffff;
 }

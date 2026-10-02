@@ -6,7 +6,7 @@ import re
 from typing import Any
 
 
-SOURCE_ID_PATTERN = re.compile(r"\b(?:INV|PAY|OWN|WL|IEX|PO|SUP|ENT)\d+\b")
+SOURCE_ID_PATTERN = re.compile(r"\b(?:INV|PAY|OWN|WL|IEX|PO|SUP|ENT|EMP)\d+\b")
 FORBIDDEN_LANGUAGE = re.compile(
     r"\b(?:fraud|priority|no flagged signals|escalate|needs more information|"
     r"duplicate payment|beneficial owner|clear this)\b",

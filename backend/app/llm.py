@@ -9,7 +9,7 @@ from typing import Any
 from app.models import ExplainResponse, Investigation
 
 
-SOURCE_ID_PATTERN = re.compile(r"\b(?:INV|PAY|OWN|WL|IEX|PO|SUP|ENT)\d+\b")
+SOURCE_ID_PATTERN = re.compile(r"\b(?:INV|PAY|OWN|WL|IEX|PO|SUP|ENT|EMP)\d+\b")
 
 
 def _evidence_payload(investigation: Investigation) -> dict[str, Any]:
@@ -38,7 +38,8 @@ def request_narrative_account(payload: dict[str, Any], *, api_key: str, model: s
     """Ask for a cited narrative and checklist. The caller decides whether to show them."""
 
     prompt = (
-        "You are writing for a human invoice reviewer. Use only the counts and record ids in the JSON. "
+        "You are writing for a human invoice reviewer. Use only the counts in the JSON. "
+        "Cite only ids listed in allowed_source_ids, even when other ids appear elsewhere in the JSON. "
         "Do not invent a count. Do not mention fraud, priority, High, Medium, No flagged signals, "
         "duplicate payment, or beneficial owner. Do not say hold the payment. "
         "Return only JSON, with no markdown fence, and two string keys: narrative and checklist. "

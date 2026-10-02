@@ -24,6 +24,7 @@ def test_rule_breaking_account_is_withheld() -> None:
         ("Set the priority to High.", "Verify IEX001.", True),
         ("Hold the payment.", "Verify IEX001.", True),
         ("INV001 cites WL999.", "Verify IEX001.", True),
+        ("INV001 cites EMP002195.", "Verify IEX001.", True),
         ("Compare IEX001.", "Escalate this invoice.", True),
         ("Compare IEX001.", "Needs more information.", False),
         ("Compare IEX001.", "Clear this supplier.", False),

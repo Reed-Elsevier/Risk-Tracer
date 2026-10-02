@@ -61,6 +61,8 @@ def test_narrative_uses_supplier_history_counts_and_leaves_priority_unchanged() 
     assert isinstance(payload, dict)
     assert "priority" not in payload
     assert payload["supplier_history"]["other_invoice_count"] == 9707
+    assert "ENT007185" in payload["allowed_source_ids"]
+    assert "EMP002195" not in payload["allowed_source_ids"]
     assert investigation.priority.value == "High"
     assert investigation.narrative.status == "shown"
     assert investigation.narrative.text == "INV0021439 has exception IEX0004557."

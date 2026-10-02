@@ -109,6 +109,7 @@ def _narrative_for(
             "exception_counts": summary["exception_counts"],
             "examples": examples,
         },
+        "allowed_source_ids": sorted(allowed_ids),
     }
     try:
         parsed = json.loads(narrative_writer(payload))

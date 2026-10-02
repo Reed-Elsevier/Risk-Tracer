@@ -121,7 +121,11 @@ def build_evidence_brief(
             if link.get("ownership_link_id")
         ]
         path_entity = exposure_watchlist.get("entity_id", "listed entity")
-        sources = [*link_ids, str(exposure_watchlist.get("watchlist_entry_id", ""))]
+        sources = [
+            str(path_entity),
+            *link_ids,
+            str(exposure_watchlist.get("watchlist_entry_id", "")),
+        ]
         if entity and entity.get("entity_id"):
             sources.insert(0, str(entity["entity_id"]))
         sentences.append(

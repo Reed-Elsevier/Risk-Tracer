@@ -5,15 +5,19 @@ const config: Config = {
   theme: {
     extend: {
       colors: {
-        ink: "#15221f",
-        paper: "#f7f5ef",
-        mist: "#e8ebe4",
-        moss: "#1f6a50",
-        ember: "#c35636",
-        gold: "#bb8b2c"
+        ink: "#000000",
+        paper: "#ffffff",
+        mist: "#f5f5f5",
+        moss: "#f48529",
+        ember: "#f48529",
+        gold: "#000000"
       },
       boxShadow: {
-        card: "0 14px 40px rgba(21, 34, 31, 0.08)"
+        card: "0 14px 40px rgba(0, 0, 0, 0.08)"
+      },
+      fontFamily: {
+        sans: ["var(--font-plex-sans)", "Segoe UI", "sans-serif"],
+        mono: ["var(--font-plex-mono)", "ui-monospace", "monospace"]
       }
     }
   },

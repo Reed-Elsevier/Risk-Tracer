@@ -44,6 +44,8 @@ Undecided: whether a future queue of investigations should exist. Do not invent 
 
 The product name is RiskTracer. Voice stays evidence-led: state recorded facts, name source records, and avoid conclusions the evidence does not support.
 
+The interface keeps orange `#f48529` as the brand, with cobalt `#1e4e8c` for ownership and record links, grove `#146b43` for a clear result, and amber `#e6b325` for medium priority and a watch. Black `#000000` is the text. White `#ffffff` is the ground.
+
 ## Evidence on Hand
 
 The verified demo investigation is `INV0021439`. README records the expected evidence: high priority from possible duplicate submission plus indirect watchlist exposure; possible duplicate `INV0046758` with payment `PAY0041819`; ownership path `OWN0009353` → `OWN0003041` → `WL003070`; no PO integrity signal for `PO0009457`; exception context `IEX0004557`.
