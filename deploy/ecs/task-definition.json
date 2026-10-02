@@ -1,0 +1,45 @@
+{
+  "family": "risktracer-api",
+  "networkMode": "awsvpc",
+  "requiresCompatibilities": ["FARGATE"],
+  "cpu": "1024",
+  "memory": "4096",
+  "executionRoleArn": "arn:aws:iam::ACCOUNT_ID:role/ecsTaskExecutionRole",
+  "containerDefinitions": [
+    {
+      "name": "api",
+      "image": "ghcr.io/reed-elsevier/risk-tracer/api:main",
+      "essential": true,
+      "portMappings": [
+        {
+          "containerPort": 8000,
+          "protocol": "tcp",
+          "name": "api"
+        }
+      ],
+      "environment": [
+        { "name": "DATA_DIR", "value": "/data" },
+        { "name": "DB_PATH", "value": "/tmp/risktracer.duckdb" },
+        { "name": "OPENAI_MODEL", "value": "gpt-4o-mini" },
+        {
+          "name": "CORS_ORIGINS",
+          "value": "http://localhost:3000,https://AMPLIFY_APP_ID.amplifyapp.com"
+        }
+      ],
+      "secrets": [
+        {
+          "name": "OPENAI_API_KEY",
+          "valueFrom": "arn:aws:secretsmanager:AWS_REGION:ACCOUNT_ID:secret:risktracer/openai-api-key"
+        }
+      ],
+      "logConfiguration": {
+        "logDriver": "awslogs",
+        "options": {
+          "awslogs-group": "/ecs/risktracer-api",
+          "awslogs-region": "AWS_REGION",
+          "awslogs-stream-prefix": "api"
+        }
+      }
+    }
+  ]
+}

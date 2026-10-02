@@ -7,8 +7,10 @@ COPY backend/app ./app
 
 RUN pip install --no-cache-dir .
 
+COPY center_data /data
+
 ENV DATA_DIR=/data \
-    DB_PATH=/var/risktracer.duckdb \
+    DB_PATH=/tmp/risktracer.duckdb \
     PYTHONUNBUFFERED=1
 
 EXPOSE 8000
