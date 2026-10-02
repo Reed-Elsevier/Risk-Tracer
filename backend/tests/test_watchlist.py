@@ -65,3 +65,72 @@ def test_individual_watchlist_rows_are_not_treated_as_entity_exposure() -> None:
     result = find_watchlist_exposures("ENT000140", pd.DataFrame(), watchlists)
 
     assert result == {"direct_match": None, "exposures": []}
+
+
+def test_latest_entity_watchlist_record_is_used() -> None:
+    watchlists = pd.DataFrame(
+        [
+            {
+                "watchlist_entry_id": "WL001",
+                "subject_type": "Entity",
+                "entity_id": "ENT000140",
+                "list_type": "Old list",
+                "list_source": "Source",
+                "listed_date": "2020-01-01 00:00:00",
+                "reason": "Old reason",
+            },
+            {
+                "watchlist_entry_id": "WL002",
+                "subject_type": "Entity",
+                "entity_id": "ENT000140",
+                "list_type": "Latest list",
+                "list_source": "Source",
+                "listed_date": "2024-01-01 00:00:00",
+                "reason": "Latest reason",
+            },
+        ]
+    )
+
+    result = find_watchlist_exposures("ENT000140", pd.DataFrame(), watchlists)
+
+    assert result["direct_match"]["watchlist_entry_id"] == "WL002"
+
+
+def test_indirect_link_is_a_terminal_recorded_link() -> None:
+    ownership_links = pd.DataFrame(
+        [
+            {
+                "ownership_link_id": "OWN001",
+                "parent_entity_id": "ENT_PARENT",
+                "child_entity_id": "ENT_SUPPLIER",
+                "ownership_pct": "10",
+                "link_type": "Indirect",
+                "effective_date": "2020-01-01 00:00:00",
+            },
+            {
+                "ownership_link_id": "OWN002",
+                "parent_entity_id": "ENT_LISTED",
+                "child_entity_id": "ENT_PARENT",
+                "ownership_pct": "20",
+                "link_type": "Direct",
+                "effective_date": "2020-01-01 00:00:00",
+            },
+        ]
+    )
+    watchlists = pd.DataFrame(
+        [
+            {
+                "watchlist_entry_id": "WL001",
+                "subject_type": "Entity",
+                "entity_id": "ENT_LISTED",
+                "list_type": "Sanctions-like",
+                "list_source": "Source",
+                "listed_date": "2024-01-01 00:00:00",
+                "reason": "Asset freeze",
+            }
+        ]
+    )
+
+    result = find_watchlist_exposures("ENT_SUPPLIER", ownership_links, watchlists)
+
+    assert result["exposures"] == []

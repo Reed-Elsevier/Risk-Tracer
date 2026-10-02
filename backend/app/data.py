@@ -39,6 +39,7 @@ class DataStore:
         self.db_path = Path(db_path)
         self.cache_dir = self.db_path.parent / "parquet"
         self.cache_dir.mkdir(parents=True, exist_ok=True)
+        self.cache_paths: dict[str, Path] = {}
         self.frames = {
             name: self._load_frame(name, relative_path)
             for name, relative_path in DATASET_PATHS.items()
@@ -52,9 +53,11 @@ class DataStore:
         if not csv_path.exists():
             raise FileNotFoundError(f"Dataset file not found: {csv_path}")
         if parquet_path.exists() and parquet_path.stat().st_mtime >= csv_path.stat().st_mtime:
+            self.cache_paths[name] = parquet_path
             return pd.read_parquet(parquet_path)
         frame = pd.read_csv(csv_path, dtype=str, keep_default_na=False, na_filter=False)
         frame.to_parquet(parquet_path, index=False)
+        self.cache_paths[name] = parquet_path
         return frame
 
     def _index_frames(self) -> None:
@@ -68,10 +71,10 @@ class DataStore:
         if str(self.db_path) != ":memory:":
             self.db_path.parent.mkdir(parents=True, exist_ok=True)
         connection = duckdb.connect(str(self.db_path))
-        for name, frame in self.frames.items():
-            connection.register(f"{name}_frame", frame)
+        for name in self.frames:
+            parquet_path = str(self.cache_paths[name]).replace("\\", "/").replace("'", "''")
             connection.execute(
-                f"CREATE OR REPLACE VIEW {name} AS SELECT * FROM {name}_frame"
+                f"CREATE OR REPLACE VIEW {name} AS SELECT * FROM read_parquet('{parquet_path}')"
             )
         connection.execute(
             """

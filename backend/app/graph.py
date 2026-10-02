@@ -46,7 +46,7 @@ def build_ownership_graph(
                 if link_id in selected_links:
                     continue
                 selected_links[link_id] = link
-                if parent not in depths:
+                if parent not in depths and str(link.get("link_type", "")).casefold() != "indirect":
                     depths[parent] = depth + 1
                     next_frontier.append(parent)
         frontier = next_frontier
@@ -61,8 +61,18 @@ def build_ownership_graph(
         for _, raw_row in watchlists.iterrows():
             record = _record(raw_row)
             entity_id = str(record.get("entity_id", ""))
-            if record.get("subject_type") == "Entity" and entity_id and entity_id not in listed_records:
-                listed_records[entity_id] = record
+            if record.get("subject_type") == "Entity" and entity_id:
+                current = listed_records.get(entity_id)
+                current_key = (
+                    str(current.get("listed_date", "")),
+                    str(current.get("watchlist_entry_id", "")),
+                ) if current else ("", "")
+                candidate_key = (
+                    str(record.get("listed_date", "")),
+                    str(record.get("watchlist_entry_id", "")),
+                )
+                if current is None or candidate_key > current_key:
+                    listed_records[entity_id] = record
 
     node_ids = set(depths)
     for link in selected_links.values():

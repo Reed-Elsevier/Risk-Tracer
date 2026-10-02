@@ -2,9 +2,9 @@ import type { EvidenceSentence } from "@/lib/types";
 
 function SourceId({ value }: { value: string }) {
   return (
-    <span className="rounded-md bg-mist px-1.5 py-0.5 font-mono text-[11px] font-semibold text-moss">
+    <a href={`#source-${value}`} className="rounded-md bg-mist px-1.5 py-0.5 font-mono text-[11px] font-semibold text-moss hover:bg-[#cfe0d5] hover:underline">
       {value}
-    </span>
+    </a>
   );
 }
 
@@ -31,6 +31,7 @@ export default function EvidenceBrief({
       <div className="space-y-4">
         {sentences.map((sentence, index) => (
           <div key={`${sentence.text}-${index}`} className="border-l-2 border-moss/30 pl-4 text-sm leading-6 text-slate-700">
+            {sentence.source_ids.map((sourceId) => <span key={`anchor-${sourceId}`} id={`source-${sourceId}`} className="scroll-mt-24" aria-hidden="true" />)}
             <p>{sentence.text}</p>
             <div className="mt-2 flex flex-wrap gap-1.5">
               {sentence.source_ids.map((sourceId) => <SourceId key={sourceId} value={sourceId} />)}

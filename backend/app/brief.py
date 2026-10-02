@@ -13,18 +13,6 @@ def _amount(value: Any) -> str:
         return str(value)
 
 
-def _source_ids(*records: Mapping[str, Any] | None, fields: Sequence[str]) -> list[str]:
-    result: list[str] = []
-    for record in records:
-        if not record:
-            continue
-        for field in fields:
-            value = record.get(field)
-            if value:
-                result.append(str(value))
-    return list(dict.fromkeys(result))
-
-
 def build_evidence_brief(
     *,
     invoice: Mapping[str, Any],
@@ -70,11 +58,16 @@ def build_evidence_brief(
         payment_text = ""
         if payment_record:
             payment_text = f"; payment {payment_record.get('payment_id')} is recorded"
+        matched_fields = set(match.get("matched_fields", []))
+        if "invoice_number_similarity" in matched_fields:
+            match_description = "a similar normalized invoice number and the same gross amount"
+        else:
+            match_description = "the same normalized invoice number"
         sentences.append(
             {
                 "text": (
-                    f"Possible duplicate submission: {candidate_id} matches the invoice number "
-                    f"and gross amount at {currency} {_amount(match.get('gross_amount'))}; its "
+                    f"Possible duplicate submission: {candidate_id} has {match_description} "
+                    f"at {currency} {_amount(match.get('gross_amount'))}; its "
                     f"status is {match.get('status', 'unknown')}{payment_text}."
                 ),
                 "source_ids": list(dict.fromkeys(match_sources)),
@@ -111,7 +104,8 @@ def build_evidence_brief(
             {
                 "text": (
                     f"Direct entity watchlist match: entity {direct_match.get('entity_id')} is listed "
-                    f"as {direct_match.get('list_type', 'watchlisted')} ({direct_match.get('reason', 'no reason recorded')})."
+                    f"as {direct_match.get('list_type', 'watchlisted')} ({direct_match.get('reason', 'no reason recorded')}); "
+                    f"listed date {str(direct_match.get('listed_date', ''))[:10]}."
                 ),
                 "source_ids": [source for source in direct_sources if source],
             }
@@ -121,6 +115,11 @@ def build_evidence_brief(
         exposure_watchlist = exposure.get("watchlist", {})
         links = exposure.get("links", [])
         link_ids = [str(link.get("ownership_link_id")) for link in links if link.get("ownership_link_id")]
+        link_details = [
+            f"{link.get('ownership_link_id')} ({str(link.get('effective_date', ''))[:10]})"
+            for link in links
+            if link.get("ownership_link_id")
+        ]
         path_entity = exposure_watchlist.get("entity_id", "listed entity")
         sources = [*link_ids, str(exposure_watchlist.get("watchlist_entry_id", ""))]
         if entity and entity.get("entity_id"):
@@ -129,8 +128,9 @@ def build_evidence_brief(
             {
                 "text": (
                     f"Latest recorded exposure: the supplier entity is connected to listed entity "
-                    f"{path_entity} through {', '.join(link_ids)}; the listed record is "
-                    f"{exposure_watchlist.get('watchlist_entry_id')} ({exposure_watchlist.get('list_type', 'watchlisted')})."
+                    f"{path_entity} through {', '.join(link_details)}; the listed record is "
+                    f"{exposure_watchlist.get('watchlist_entry_id')} ({exposure_watchlist.get('list_type', 'watchlisted')}) "
+                    f"with listed date {str(exposure_watchlist.get('listed_date', ''))[:10]}."
                 ),
                 "source_ids": [source for source in sources if source],
             }
@@ -152,7 +152,7 @@ def build_evidence_brief(
     suggested_next_step = (
         "Follow-up and verification of the recorded evidence is the next step because this is a retrospective review."
         if retrospective
-        else "Confirm the signals and hold payment pending human review."
+        else "Complete the human review before payment processing proceeds."
     )
     return {
         "sentences": sentences,
